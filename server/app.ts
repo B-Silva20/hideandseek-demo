@@ -1,14 +1,19 @@
 import express from 'express'
 import type { ErrorRequestHandler } from 'express'
+import { createCasesRouter } from './routes/cases.js'
 import { createHealthRouter } from './routes/health.js'
 import { createPresetRouter } from './routes/preset.js'
+import { createModelConfigRouter } from './routes/modelConfig.js'
 
 export function createApp() {
   const app = express()
   app.disable('x-powered-by')
-  app.use(express.json({ limit: '1mb' }))
+  // 案件文本上限 200,000 个字符，UTF-8 中文约 3 字节/字符，为 JSON 转义留出余量。
+  app.use(express.json({ limit: '2mb' }))
   app.use('/api', createHealthRouter())
   app.use('/api', createPresetRouter())
+  app.use('/api', createCasesRouter())
+  app.use('/api', createModelConfigRouter())
 
   app.use((_request, response) => {
     response.status(404).json({ error: '接口不存在。' })

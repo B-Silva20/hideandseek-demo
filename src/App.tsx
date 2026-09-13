@@ -1,6 +1,7 @@
 import ConnectionStatus from './components/ConnectionStatus'
 import './App.css'
 import CaseEntry from './components/CaseEntry'
+import ModelConfig from './components/ModelConfig'
 import { useState } from 'react'
 import type { CaseInput } from './types/case'
 
@@ -25,6 +26,7 @@ function App() {
         <p>来源：<code>{caseInput.sourceType}</code> · {Array.from(caseInput.text).length.toLocaleString()} 字符</p>
         <p>已统一为案件文本，等待后续解析功能接入。当前尚未开始解析。</p>
       </section>}
+      <ModelConfig />
       <ConnectionStatus />
 
       <section className="scope-card" aria-labelledby="scope-title">
