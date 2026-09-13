@@ -10,7 +10,7 @@
     "build": "tsc -b && vite build && tsc -p tsconfig.server.json",
     "start:server": "node dist-server/index.js",
     "lint": "oxlint",
-    "test": "node --import tsx --test tests/server.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "preview": "vite preview"
   },
   "engines": {

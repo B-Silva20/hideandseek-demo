@@ -1,12 +1,14 @@
 import express from 'express'
 import type { ErrorRequestHandler } from 'express'
 import { createHealthRouter } from './routes/health.js'
+import { createPresetRouter } from './routes/preset.js'
 
 export function createApp() {
   const app = express()
   app.disable('x-powered-by')
   app.use(express.json({ limit: '1mb' }))
   app.use('/api', createHealthRouter())
+  app.use('/api', createPresetRouter())
 
   app.use((_request, response) => {
     response.status(404).json({ error: '接口不存在。' })
