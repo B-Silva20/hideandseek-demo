@@ -83,6 +83,27 @@ export type CreateCaseResult =
 
 const SOURCE_TYPES: readonly CaseSourceType[] = ['preset', 'paste', 'file']
 
+const PRESET_BRIEFING: CaseBriefing = {
+  playerRole: '调查人员',
+  title: '占星术杀人魔法（本地测试案件）',
+  summary: '四十年前发生的占星术连续杀人案留下多名受害者与一份神秘手记，案件在多年后重新出现线索。',
+  objective: '通过审讯相关人物、核对时间线与证据，找出案件真相。',
+  characters: [
+    { name: '梅泽平吉', publicIdentity: '画家，案件核心人物' },
+    { name: '胜子', publicIdentity: '梅泽平吉的妻子' },
+    { name: '友子', publicIdentity: '梅泽家的女儿' },
+    { name: '亚纪子', publicIdentity: '梅泽家的女儿' },
+    { name: '夕纪子', publicIdentity: '梅泽家的女儿' },
+    { name: '登纪子', publicIdentity: '梅泽家的女儿' },
+    { name: '冷子', publicIdentity: '梅泽家的侄女' },
+    { name: '野风子', publicIdentity: '梅泽家的侄女' },
+  ],
+  relationships: ['梅泽平吉与胜子是夫妻', '六名少女与梅泽家存在亲属关系', '案件与占星术手记和画室有关'],
+  knownClues: ['占星术手记', '六名少女的星座对应关系', '画室与主屋的空间线索'],
+  visibleEvidence: ['占星术手记', '受害者名单', '画室记录'],
+  questions: ['谁拥有作案动机与机会？', '六名少女的时间线是否存在矛盾？', '手记内容与现场证据能否相互印证？'],
+}
+
 /**
  * 当前步骤只使用进程内存，后端重启（含 tsx watch 热重载）会清空所有案件。
  * DATABASE_URL 持久化属于后续步骤，接口形状不会因此改变。
@@ -181,6 +202,7 @@ export function createCase(payload: unknown): CreateCaseResult {
     createdAt: new Date().toISOString(),
     message: '案件文本已接收，正在解析。',
     sourceText,
+    ...(sourceType === 'preset' ? { briefing: PRESET_BRIEFING, status: 'ready' as const, message: '棰勭疆妗堜欢宸插噯澶囧畬鎴愩€?' } : {}),
   }
 
   cases.set(record.caseId, record)
@@ -211,7 +233,9 @@ export function toCaseSummary(record: CaseRecord): CaseSummary {
     message: record.message,
   }
   if (record.fileName) summary.fileName = record.fileName
-  if (record.parsed) {
+  if (record.briefing) {
+    summary.briefing = record.briefing
+  } else if (record.parsed) {
     const p = record.parsed
     summary.briefing = {
       playerRole: p.playerRole,

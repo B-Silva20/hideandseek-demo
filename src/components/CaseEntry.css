@@ -19,3 +19,120 @@
 .text-preview summary { cursor: pointer; padding: 12px 0; }
 .parse-ready { background: #edf6ef; overflow-wrap: anywhere; }
 @media (max-width: 420px) { .case-entry, .parse-ready { padding: 20px; } }
+
+/* Homepage courtroom visual treatment */
+.startup-page .case-entry,
+.startup-page .parse-ready {
+  border-color: rgba(16,36,58,.2);
+  border-radius: 4px;
+  background: #f6f0e4;
+  box-shadow: 5px 5px 0 rgba(16,36,58,.14), inset 0 0 0 1px rgba(180,139,71,.16);
+}
+.startup-page .entry-options button {
+  border-color: rgba(16,36,58,.24);
+  border-radius: 3px;
+  background: #efe6d5;
+  box-shadow: 2px 2px 0 rgba(16,36,58,.1);
+}
+.startup-page .entry-options button[aria-pressed="true"] {
+  background: #10243a;
+  color: #f6f0e4;
+  border-color: #10243a;
+}
+.startup-page .case-entry textarea,
+.startup-page .case-entry select {
+  border-color: rgba(16,36,58,.25);
+  border-radius: 3px;
+  background: #fffaf1;
+}
+.startup-page .case-entry input::file-selector-button {
+  border: 1px solid #10243a;
+  border-radius: 3px;
+  background: #10243a;
+  color: #f6f0e4;
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.startup-page .parse-ready {
+  background: #ede1c7;
+  border-left: 5px solid #b33a3a;
+}
+.startup-page .entry-error {
+  border-radius: 3px;
+  background: #f3d8d0;
+  color: #842b31;
+}
+
+/* Evidence dossier styling */
+.startup-page .case-entry,
+.startup-page .parse-ready {
+  position: relative;
+  margin-bottom: 24px;
+  padding: 26px;
+  background: #f6f0e4;
+}
+.startup-page .case-entry::before,
+.startup-page .parse-ready::before {
+  content: 'EVIDENCE DOSSIER';
+  position: absolute;
+  top: -10px;
+  left: 18px;
+  padding: 3px 9px;
+  color: #f6f0e4;
+  background: #10243a;
+  font: 700 10px/1.2 'Segoe UI', sans-serif;
+  letter-spacing: .14em;
+}
+.startup-page .case-entry h2,
+.startup-page .parse-ready h2 { font-size: 20px; }
+.startup-page .entry-options { gap: 10px; margin: 4px 0 16px; }
+.startup-page .entry-options button {
+  position: relative;
+  min-height: 50px;
+  border: 1px solid rgba(16,36,58,.3);
+  border-radius: 2px;
+  background: rgba(255,255,255,.4);
+  color: #10243a;
+  font-weight: 650;
+  transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+.startup-page .entry-options button:hover { transform: translateY(-2px); box-shadow: 2px 3px 0 rgba(16,36,58,.2); }
+.startup-page .entry-options button[aria-pressed='true'] {
+  border-color: #842b31;
+  background: #b33a3a;
+  color: #fff8ed;
+  box-shadow: 3px 3px 0 #6f2028;
+}
+.startup-page .entry-help,
+.startup-page .preset-copy p,
+.startup-page .text-preview,
+.startup-page .parse-ready p { color: #5a6470; }
+.startup-page .preset-copy {
+  margin: 18px 0 8px;
+  padding: 14px 16px;
+  border-left: 4px solid #b48b47;
+  background: rgba(180,139,71,.11);
+}
+.startup-page .preset-copy h3 { margin: 0 0 7px; color: #10243a; font-size: 18px; }
+.startup-page .case-entry label { margin-top: 20px; color: #10243a; font-family: 'Segoe UI', sans-serif; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.startup-page .case-entry textarea,
+.startup-page .case-entry select {
+  border: 1px solid rgba(16,36,58,.3);
+  border-radius: 2px;
+  background: rgba(255,255,255,.58);
+  box-shadow: inset 0 1px 3px rgba(16,36,58,.06);
+}
+.startup-page .case-entry textarea:focus,
+.startup-page .case-entry select:focus { border-color: #b33a3a; outline: 3px solid rgba(179,58,58,.16); }
+.startup-page .case-entry input::file-selector-button {
+  border: 0;
+  border-right: 1px solid rgba(16,36,58,.2);
+  background: #10243a;
+  color: #f6f0e4;
+  font: inherit;
+  cursor: pointer;
+}
+.startup-page .entry-error { border-left: 4px solid #b33a3a; border-radius: 2px; background: rgba(179,58,58,.1); color: #842b31; }
+.startup-page .parse-ready { background: #e9dfcf; }
+.startup-page .text-preview details { border-top: 1px dashed rgba(16,36,58,.25); }

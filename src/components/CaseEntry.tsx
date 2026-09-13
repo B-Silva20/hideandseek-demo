@@ -69,8 +69,8 @@ export default function CaseEntry({ onReady }: { onReady: (input: CaseInput | nu
       </select>
     </>}
     {error && <p role="alert" className="entry-error">{error}</p>}
-    <button className="refresh-button" type="button" disabled={busy} onClick={() => void submit()}>{busy ? '正在读取案件…' : '准备案件文本'}</button>
-    <p className="entry-help">本步仅准备解析输入，不会调用大模型。</p>
+    <button className="refresh-button" type="button" disabled={busy} onClick={() => void submit()}>{busy ? '正在读取案件…' : mode === 'preset' ? '进入预置案件' : '准备案件文本'}</button>
+    <p className="entry-help">{mode === 'preset' ? '预置案件已内置测试 Briefing，点击后可直接进入审讯流程。' : '提交后将调用大模型生成 Briefing；若超时，可稍后重试。'}</p>
     {notice && <div className="text-preview"><p>{notice}</p><details><summary>查看文本开头，检查编码</summary><pre>{preview}</pre></details></div>}
   </section>
 }

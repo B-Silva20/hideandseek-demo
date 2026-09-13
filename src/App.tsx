@@ -24,6 +24,11 @@ function App() {
       const created = await fetch('/api/cases', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ sourceText: input.text, sourceType: input.sourceType === 'text' ? 'paste' : input.sourceType }) })
       if (!created.ok) throw new Error((await created.json() as {error?:string}).error || '案件提交失败。')
       const record = await created.json() as CaseSummary
+      if (input.sourceType === 'preset' && record.briefing) {
+        setCaseId(record.caseId)
+        setBriefing(record.briefing)
+        return
+      }
       const parsed = await fetch(`/api/cases/${record.caseId}/parse`, { method: 'POST' })
       if (!parsed.ok) throw new Error((await parsed.json() as {error?:string}).error || '案件解析失败。')
       const result = await parsed.json() as CaseSummary

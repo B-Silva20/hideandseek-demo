@@ -215,3 +215,89 @@
     padding: 20px;
   }
 }
+
+/* Homepage courtroom visual treatment */
+.startup-page {
+  --court-paper: #f6f0e4;
+  --court-paper-deep: #e9dfcf;
+  --court-red: #b33a3a;
+  --court-ink: #10243a;
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 760px);
+  padding: 30px 24px 34px;
+  background: linear-gradient(145deg, var(--court-ink) 0 24%, #f1e9da 24% 100%);
+  overflow: hidden;
+}
+
+.startup-page::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: .24;
+  background-image: repeating-linear-gradient(0deg, transparent 0 5px, rgba(16,36,58,.08) 6px), repeating-linear-gradient(90deg, transparent 0 7px, rgba(16,36,58,.05) 8px);
+}
+
+.startup-page .page-header { color: rgba(246,240,228,.86); letter-spacing: .03em; }
+.startup-page .project-mark {
+  color: var(--court-paper);
+  background: var(--court-red);
+  border: 2px solid rgba(246,240,228,.72);
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 var(--court-ink), 0 0 0 4px rgba(180,139,71,.26);
+}
+.startup-page .intro { position: relative; padding: 54px 0 34px; color: var(--court-paper); }
+.startup-page .intro::after {
+  content: 'CASE FILE 001';
+  position: absolute;
+  right: 4px;
+  bottom: 28px;
+  transform: rotate(-7deg);
+  color: #edc56e;
+  border: 2px solid currentColor;
+  padding: 5px 8px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  opacity: .82;
+}
+.startup-page .step-label { color: #edc56e; }
+.startup-page .intro h1 { letter-spacing: .02em; text-shadow: 3px 3px 0 rgba(0,0,0,.22); }
+.startup-page .intro-copy { color: rgba(246,240,228,.76); }
+.startup-page .connection-card,
+.startup-page .scope-card,
+.startup-page .case-entry,
+.startup-page .parse-ready,
+.startup-page .model-config {
+  border: 1px solid rgba(16,36,58,.2);
+  border-radius: 4px;
+  background: var(--court-paper);
+  box-shadow: 5px 5px 0 rgba(16,36,58,.14), inset 0 0 0 1px rgba(180,139,71,.16);
+}
+.startup-page .card-heading { margin-bottom: 20px; }
+.startup-page .card-heading h2::before,
+.startup-page .scope-card h2::before,
+.startup-page .case-entry h2::before,
+.startup-page .model-config h2::before { content: '§'; margin-right: 8px; color: var(--court-red); font-family: Georgia, serif; }
+.startup-page .status-badge,
+.startup-page .config-lock { border-radius: 2px; border: 1px solid currentColor; background: transparent; }
+.startup-page .status-badge.success,
+.startup-page .config-lock { background: rgba(180,139,71,.13); color: #70551f; }
+.startup-page .status-badge.warning { background: rgba(179,58,58,.1); color: #842b31; }
+.startup-page .status-badge.error { background: rgba(179,58,58,.13); color: #842b31; }
+.startup-page .status-row { border-top-color: rgba(16,36,58,.16); }
+.startup-page .refresh-button { border-radius: 3px; background: var(--court-red); box-shadow: 3px 3px 0 #6f2028; letter-spacing: .03em; }
+.startup-page .refresh-button:hover:not(:disabled) { background: #8f2e36; }
+.startup-page .refresh-button:focus-visible,
+.startup-page .case-entry :focus-visible { outline-color: #d2a95e; }
+.startup-page .scope-card { background: rgba(246,240,228,.78); }
+.startup-page .scope-card p,
+.startup-page .page-footer { color: #5a6470; }
+
+@media (max-width: 420px) {
+  .startup-page { padding: 24px 18px 28px; background: linear-gradient(150deg, var(--court-ink) 0 20%, #f1e9da 20% 100%); }
+  .startup-page .intro::after { right: 0; bottom: 16px; transform: rotate(-5deg) scale(.9); }
+}
