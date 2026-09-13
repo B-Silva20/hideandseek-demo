@@ -115,10 +115,16 @@ const PRESET_BRIEFING: CaseBriefing = {
 const PRESET_TRUTH = '手记的作者身份与六名少女的实际死亡顺序是关键：真凶利用手记制造了「按星座顺序作案」的假象，实际死亡时间与手记记录的顺序并不一致。'
 
 /**
- * 预置案件没有模型解析结果，因此不存在可判定的凶手身份。
- * 想让它也能判定逮捕对错，在这里填入与 PRESET_BRIEFING.characters 完全一致的姓名。
+ * 预置案件没有模型解析结果，凶手身份取决于你实际使用的那份预置案件文本，
+ * 因此不写死在代码里，而是从 PRESET_CULPRIT 环境变量读取。
+ * 只有在 PRESET_BRIEFING.characters 中存在同名人物时才会被采纳，
+ * 避免因为拼写错误让每一次逮捕都静默判错。留空则预置案件的逮捕一律返回「无法判定」。
  */
-const PRESET_CULPRIT = ''
+function readPresetCulprit(): string {
+  const value = process.env.PRESET_CULPRIT?.trim() ?? ''
+  if (!value) return ''
+  return PRESET_BRIEFING.characters.some((person) => person.name === value) ? value : ''
+}
 
 /** 案件真相只供服务端使用，绝不随 CaseSummary 返回前端。 */
 export function getCaseTruth(record: CaseRecord): string {
@@ -131,7 +137,7 @@ export function getCaseTruth(record: CaseRecord): string {
 export function getCaseCulprit(record: CaseRecord): string {
   const culprit = record.parsed?.culprit?.trim()
   if (culprit) return culprit
-  return record.sourceType === 'preset' ? PRESET_CULPRIT : ''
+  return record.sourceType === 'preset' ? readPresetCulprit() : ''
 }
 
 /**
