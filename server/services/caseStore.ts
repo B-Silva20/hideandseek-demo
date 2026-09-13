@@ -35,6 +35,18 @@ export interface CaseSummary {
   textStats: CaseTextStats
   createdAt: string
   message: string
+  briefing?: CaseBriefing
+}
+export interface CaseBriefing {
+  playerRole: string
+  title: string
+  summary: string
+  objective: string
+  characters: Array<{ name: string; publicIdentity: string }>
+  relationships: string[]
+  knownClues: string[]
+  visibleEvidence: string[]
+  questions: string[]
 }
 
 export type CaseErrorCode =
@@ -199,5 +211,19 @@ export function toCaseSummary(record: CaseRecord): CaseSummary {
     message: record.message,
   }
   if (record.fileName) summary.fileName = record.fileName
+  if (record.parsed) {
+    const p = record.parsed
+    summary.briefing = {
+      playerRole: p.playerRole,
+      title: record.title,
+      summary: p.timeline.slice(0, 2).join(' '),
+      objective: '查明案件真相，并核对人物证词与现有证据。',
+      characters: p.characters.map((value) => { const [name, ...rest] = value.split(/[：:]/u); return { name: name.trim(), publicIdentity: (rest.join('：').trim() || '相关人物') } }),
+      relationships: p.relationships,
+      knownClues: p.evidence,
+      visibleEvidence: p.evidence.slice(0, 5),
+      questions: ['谁有作案动机与机会？', '哪些证词存在矛盾？', '现有证据能否支持唯一结论？'],
+    }
+  }
   return summary
 }

@@ -1,0 +1,1 @@
+export interface SessionState { sessionId:string; caseId:string; currentSubject:string|null; history:Array<{role:'user'|'npc';content:string}>; trust:Record<string,number>; hostility:Record<string,number>; unlockedEvidence:string[]; presentedEvidence:string[]; contradictions:string[]; actionPoints:number; actionLog:string[]; gameState:'active'|'ended'; ending:string|null }

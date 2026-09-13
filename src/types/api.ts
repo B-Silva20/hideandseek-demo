@@ -8,6 +8,7 @@ export interface HealthResponse {
   }
   message: string
 }
+export interface CaseBriefing { playerRole: string; title: string; summary: string; objective: string; characters: Array<{name:string; publicIdentity:string}>; relationships: string[]; knownClues: string[]; visibleEvidence: string[]; questions: string[] }
 
 /*
  * 案件输入接口契约（前端副本）。
@@ -57,6 +58,7 @@ export interface CaseSummary {
   createdAt: string
   /** 面向用户的中文提示，可直接展示。 */
   message: string
+  briefing?: CaseBriefing
 }
 
 /** 失败响应的错误码，前端据此选择提示文案，不要匹配 error 文案本身。 */

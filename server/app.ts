@@ -4,6 +4,7 @@ import { createCasesRouter } from './routes/cases.js'
 import { createHealthRouter } from './routes/health.js'
 import { createPresetRouter } from './routes/preset.js'
 import { createModelConfigRouter } from './routes/modelConfig.js'
+import { createSessionsRouter } from './routes/sessions.js'
 
 export function createApp() {
   const app = express()
@@ -14,6 +15,7 @@ export function createApp() {
   app.use('/api', createPresetRouter())
   app.use('/api', createCasesRouter())
   app.use('/api', createModelConfigRouter())
+  app.use('/api', createSessionsRouter())
 
   app.use((_request, response) => {
     response.status(404).json({ error: '接口不存在。' })
