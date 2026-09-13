@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { decodeCaseBytes, prepareCaseInput, readCaseFile } from '../engine/caseInput'
 import type { TextEncoding } from '../engine/caseInput'
 import type { CaseInput, SourceType } from '../types/case'
+import { CASE_TEXT_MIN_LENGTH } from '../types/api'
 import './CaseEntry.css'
 
 const labels: Record<SourceType, string> = { preset: '使用预置案件', text: '粘贴案件文本', txt: '上传 TXT 文件' }
@@ -52,12 +53,14 @@ export default function CaseEntry({ onReady }: { onReady: (input: CaseInput | nu
     <div className="entry-options" role="group" aria-label="案件输入方式">
       {(Object.keys(labels) as SourceType[]).map((source) => <button key={source} type="button" aria-pressed={mode === source} onClick={() => { reset(); setMode(source) }}>{labels[source]}</button>)}
     </div>
-    <p className="entry-help">至少 100 个非空白字符，最多 20 万字符；TXT 文件最大 5 MB。</p>
+    <p className="entry-help">至少 {CASE_TEXT_MIN_LENGTH} 个字符，最多 20 万字符；TXT 文件最大 5 MB。</p>
     {mode === 'preset' && <div className="preset-copy"><h3>占星术杀人魔法</h3><p>读取已配置的本地预置案件，作为本次调查的案件文本。</p></div>}
     {mode === 'text' && <>
       <label htmlFor="case-text">案件文本</label>
       <textarea id="case-text" value={text} placeholder="粘贴案件背景、人物、线索与事件经过……" onChange={(event) => { reset(); setText(event.target.value) }} />
-      <p className="entry-help">当前 {Array.from(text.replace(/\s/gu, '')).length.toLocaleString()} 个非空白字符</p>
+      <p className={`entry-help char-count ${Array.from(text).length >= CASE_TEXT_MIN_LENGTH ? 'ready' : ''}`}>
+        当前 {Array.from(text).length.toLocaleString()} 个字符 / 至少 {CASE_TEXT_MIN_LENGTH} 个
+      </p>
     </>}
     {mode === 'txt' && <>
       <label htmlFor="case-file">选择 TXT 文件</label>
@@ -70,7 +73,7 @@ export default function CaseEntry({ onReady }: { onReady: (input: CaseInput | nu
     </>}
     {error && <p role="alert" className="entry-error">{error}</p>}
     <button className="refresh-button" type="button" disabled={busy} onClick={() => void submit()}>{busy ? '正在读取案件…' : mode === 'preset' ? '进入预置案件' : '准备案件文本'}</button>
-    <p className="entry-help">{mode === 'preset' ? '预置案件已内置测试 Briefing，点击后可直接进入审讯流程。' : '提交后将调用大模型生成 Briefing；若超时，可稍后重试。'}</p>
+    <p className="entry-help">{mode === 'preset' ? '预置案件自带测试 Briefing，点击后可直接进入审讯，不需要调用模型。' : '提交后会调用模型生成 Briefing；失败可在下方重新提交。'}</p>
     {notice && <div className="text-preview"><p>{notice}</p><details><summary>查看文本开头，检查编码</summary><pre>{preview}</pre></details></div>}
   </section>
 }

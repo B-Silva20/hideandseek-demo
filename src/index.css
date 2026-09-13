@@ -1,62 +1,106 @@
 ﻿:root {
-  font-family: Inter, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: #233b32;
-  background: #f5f5ef;
+  --font-display: Impact, Haettenschweiler, 'Arial Narrow Bold', 'Microsoft YaHei', sans-serif;
+  --font-body: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  /* 主色板：近黑底 + 米白前景 + 红色警示 + 金色行动 + 青蓝信息 */
+  --bg: #0d0d0d;
+  --panel: #181818;
+  --panel-2: #232323;
+  --line: #f7f4ed;
+  --text: #f7f4ed;
+  --dim: #c2beb4;
+  --red: #ef3340;
+  --gold: #ffd23f;
+  --cyan: #29d3ff;
+  --green: #7bf0a8;
+
+  /* 旧变量名保留为别名，避免残留引用失效 */
+  --ink: var(--text);
+  --muted: var(--dim);
+  --border: var(--line);
+  --accent: var(--red);
+  --paper: var(--panel);
+  --court-blue: var(--line);
+  --court-red: var(--red);
+  --electric: var(--cyan);
+
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color-scheme: light;
-
-  --ink: #233b32;
-  --muted: #67716a;
-  --border: #dce2d9;
-  --accent: #477661;
+  color-scheme: dark;
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+
+html, body { background: var(--bg); }
+
+body { min-width: 280px; margin: 0; }
+
+/* 斜向网纹，保持整体“印刷剪报”质感 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .07;
+  background: repeating-linear-gradient(135deg, transparent 0 16px, #fff 16px 20px, transparent 20px 46px);
 }
 
-body {
-  min-width: 280px;
-  margin: 0;
+/* 顶部红光与右下金光，给页面一个固定光源 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(239, 51, 64, .18), transparent 58%),
+    radial-gradient(circle at 105% 105%, rgba(255, 210, 63, .12), transparent 55%);
 }
 
-p {
-  margin: 0;
+#root { position: relative; z-index: 1; }
+
+p { margin: 0; }
+
+button, input, textarea, select { font: inherit; }
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
 }
+
+::selection { background: var(--gold); color: #111; }
 
 code {
-  border-radius: 4px;
-  padding: 2px 5px;
-  background: #eef1eb;
-  color: var(--ink);
-  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
-  font-size: 0.92em;
+  padding: 2px 6px;
+  background: var(--gold);
+  color: #111;
+  font-family: var(--font-mono);
+  font-size: .92em;
   overflow-wrap: anywhere;
 }
 
-/* Courtroom noir visual layer — homepage */
-.startup-page { --court-paper:#f6f0e4; --court-red:#b33a3a; --court-gold:#b48b47; --court-ink:#10243a; position:relative; isolation:isolate; width:min(100%,760px); padding:30px 24px 34px; color:var(--ink); background:linear-gradient(145deg,#10243a 0 24%,#f1e9da 24% 100%); overflow:hidden; }
-.startup-page::before { content:''; position:fixed; z-index:-1; inset:0; pointer-events:none; opacity:.24; background-image:repeating-linear-gradient(0deg,transparent 0 5px,rgba(16,36,58,.08) 6px),repeating-linear-gradient(90deg,transparent 0 7px,rgba(16,36,58,.05) 8px); }
-.page-header { color:rgba(246,240,228,.86); letter-spacing:.03em; }
-.project-mark { color:var(--court-paper); background:var(--court-red); border:2px solid rgba(246,240,228,.72); border-radius:3px; box-shadow:3px 3px 0 var(--court-ink),0 0 0 4px rgba(180,139,71,.26); }
-.intro { position:relative; padding:54px 0 34px; color:var(--court-paper); }
-.intro::after { content:'CASE FILE 001'; position:absolute; right:4px; bottom:28px; transform:rotate(-7deg); color:#edc56e; border:2px solid currentColor; padding:5px 8px; font:800 10px 'Segoe UI',sans-serif; letter-spacing:.16em; opacity:.82; }
-.step-label { color:#edc56e; }
-.intro h1 { letter-spacing:.02em; text-shadow:3px 3px 0 rgba(0,0,0,.22); }
-.intro-copy { color:rgba(246,240,228,.76); }
-.connection-card,.scope-card,.case-entry,.parse-ready,.model-config { border:1px solid rgba(16,36,58,.2); border-radius:4px; background:var(--court-paper); box-shadow:5px 5px 0 rgba(16,36,58,.14),inset 0 0 0 1px rgba(180,139,71,.16); }
-.card-heading { margin-bottom:20px; }
-.card-heading h2,.scope-card h2,.case-entry h2,.parse-ready h2,.model-config h2 { letter-spacing:.02em; }
-.card-heading h2::before,.scope-card h2::before,.case-entry h2::before,.model-config h2::before { content:'§'; margin-right:8px; color:var(--court-red); }
-.status-badge,.config-lock { border-radius:2px; border:1px solid currentColor; background:transparent; }
-.status-badge.success,.config-lock { background:rgba(180,139,71,.13); color:#70551f; }
-.status-badge.warning,.status-badge.error { background:rgba(179,58,58,.11); color:#842b31; }
-.status-row { border-top-color:rgba(16,36,58,.16); }
-.refresh-button { border-radius:3px; background:var(--court-red); box-shadow:3px 3px 0 #6f2028; letter-spacing:.03em; }
-.refresh-button:hover:not(:disabled) { background:#8f2e36; }
-.scope-card { background:rgba(246,240,228,.78); }
-.scope-card p,.page-footer { color:#5a6470; }
-@media(max-width:420px){.startup-page{padding:24px 18px 28px;background:linear-gradient(150deg,#10243a 0 20%,#f1e9da 20% 100%)}.intro::after{right:0;bottom:16px;transform:rotate(-5deg) scale(.9)}}
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #0b0b0b; }
+::-webkit-scrollbar-thumb { background: #4a4a4a; border: 2px solid #0b0b0b; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
