@@ -69,6 +69,8 @@ export interface ParsedCase {
   evidence: string[]
   timeline: string[]
   truth: string
+  /** 凶手姓名，无法确定时为空串。只在服务端用于结局判定。 */
+  culprit: string
 }
 
 export interface CaseRecord extends CaseSummary {
@@ -82,6 +84,55 @@ export type CreateCaseResult =
   | { ok: false; code: CaseErrorCode; error: string }
 
 const SOURCE_TYPES: readonly CaseSourceType[] = ['preset', 'paste', 'file']
+
+/*
+ * 预置案件自带 Briefing，不需要调用模型就能进入审讯。
+ * 演示时即使没有配置 API Key（或模型超时），也能完整走完「案件 → Briefing → 审讯」。
+ * 与 server/routes/preset.ts 提供的本地案件文本对应。
+ */
+const PRESET_BRIEFING: CaseBriefing = {
+  playerRole: '调查人员',
+  title: '占星术杀人魔法（本地预置案件）',
+  summary: '四十年前的占星术连续杀人案留下多名受害者与一份神秘手记，案件在多年后重新出现线索。',
+  objective: '通过审讯相关人物、核对时间线与证据，找出案件真相。',
+  characters: [
+    { name: '梅泽平吉', publicIdentity: '画家，案件核心人物' },
+    { name: '胜子', publicIdentity: '梅泽平吉的妻子' },
+    { name: '友子', publicIdentity: '梅泽家的女儿' },
+    { name: '亚纪子', publicIdentity: '梅泽家的女儿' },
+    { name: '夕纪子', publicIdentity: '梅泽家的女儿' },
+    { name: '登纪子', publicIdentity: '梅泽家的女儿' },
+    { name: '冷子', publicIdentity: '梅泽家的侄女' },
+    { name: '野风子', publicIdentity: '梅泽家的侄女' },
+  ],
+  relationships: ['梅泽平吉与胜子是夫妻', '六名少女与梅泽家存在亲属关系', '案件与占星术手记和画室有关'],
+  knownClues: ['占星术手记', '六名少女的星座对应关系', '画室与主屋的空间线索'],
+  visibleEvidence: ['占星术手记', '受害者名单', '画室记录'],
+  questions: ['谁拥有作案动机与机会？', '六名少女的时间线是否存在矛盾？', '手记内容与现场证据能否相互印证？'],
+}
+
+/** 预置案件的真相，只留在服务端供结局结算与模型提示词使用。 */
+const PRESET_TRUTH = '手记的作者身份与六名少女的实际死亡顺序是关键：真凶利用手记制造了「按星座顺序作案」的假象，实际死亡时间与手记记录的顺序并不一致。'
+
+/**
+ * 预置案件没有模型解析结果，因此不存在可判定的凶手身份。
+ * 想让它也能判定逮捕对错，在这里填入与 PRESET_BRIEFING.characters 完全一致的姓名。
+ */
+const PRESET_CULPRIT = ''
+
+/** 案件真相只供服务端使用，绝不随 CaseSummary 返回前端。 */
+export function getCaseTruth(record: CaseRecord): string {
+  const parsed = record.parsed?.truth?.trim()
+  if (parsed) return parsed
+  return record.sourceType === 'preset' ? PRESET_TRUTH : '未知'
+}
+
+/** 凶手姓名只供服务端的结局判定使用；无法确定时返回空串。 */
+export function getCaseCulprit(record: CaseRecord): string {
+  const culprit = record.parsed?.culprit?.trim()
+  if (culprit) return culprit
+  return record.sourceType === 'preset' ? PRESET_CULPRIT : ''
+}
 
 /**
  * 当前步骤只使用进程内存，后端重启（含 tsx watch 热重载）会清空所有案件。
@@ -183,6 +234,12 @@ export function createCase(payload: unknown): CreateCaseResult {
     sourceText,
   }
 
+  if (sourceType === 'preset') {
+    record.briefing = PRESET_BRIEFING
+    record.status = 'ready'
+    record.message = '预置案件已准备完成，可直接开始审讯。'
+  }
+
   cases.set(record.caseId, record)
   return { ok: true, record }
 }
@@ -211,7 +268,10 @@ export function toCaseSummary(record: CaseRecord): CaseSummary {
     message: record.message,
   }
   if (record.fileName) summary.fileName = record.fileName
-  if (record.parsed) {
+  // 预置案件直接返回自带 Briefing，无需经过模型解析。
+  if (record.briefing) {
+    summary.briefing = record.briefing
+  } else if (record.parsed) {
     const p = record.parsed
     summary.briefing = {
       playerRole: p.playerRole,

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { decodeCaseBytes, prepareCaseInput, readCaseFile, MAX_FILE_BYTES } from '../src/engine/caseInput.ts'
 
-const story = '调查员来到现场，发现证人描述的时间与门口录像不符。'.repeat(6)
+const story = '调查员来到现场，发现证人描述的时间与门口录像不符。'.repeat(10)
 test('all sources produce normalized text with the correct sourceType', () => {
   for (const sourceType of ['preset', 'text', 'txt'] as const) {
     assert.deepEqual(prepareCaseInput(`\uFEFF \r\n${story}\r\n `, sourceType), { text: story, sourceType })
@@ -12,7 +12,9 @@ test('reject empty, short, symbolic, binary, corrupt and oversized content', () 
   for (const text of [' \n\t', '案件', '！'.repeat(100), story + '\0', story + '\uFFFD', '案'.repeat(200001)]) {
     assert.throws(() => prepareCaseInput(text, 'text'))
   }
-  assert.equal(prepareCaseInput('案'.repeat(100), 'text').text.length, 100)
+  // 前端与后端同为「至少 200 个码点」：199 拒绝，200 与上限均通过。
+  assert.throws(() => prepareCaseInput('案'.repeat(199), 'text'), /至少需要 200/)
+  assert.equal(prepareCaseInput('案'.repeat(200), 'text').text.length, 200)
   assert.equal(prepareCaseInput('案'.repeat(200000), 'text').text.length, 200000)
 })
 test('UTF-8, BOM, GBK and four-byte GB18030 decode correctly', () => {

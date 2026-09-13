@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { CASE_NOT_FOUND_ERROR, createCase, findCase, toCaseSummary, updateCase } from '../services/caseStore.js'
-import { ModelError, parseCaseText } from '../services/caseParser.js'
+import { parseCaseText } from '../services/caseParser.js'
+import { ModelError } from '../services/modelError.js'
 
 export function createCasesRouter() {
   const router = Router()

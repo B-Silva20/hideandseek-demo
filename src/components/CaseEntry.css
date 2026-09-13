@@ -1,21 +1,39 @@
-.case-entry, .parse-ready { margin-bottom: 24px; padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: white; }
-.case-entry h2, .parse-ready h2 { margin: 0 0 18px; font-size: 18px; }
-.entry-options { display: flex; flex-wrap: wrap; gap: 8px; }
-.entry-options button { flex: 1 1 140px; min-height: 48px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
-.entry-options button[aria-pressed="true"] { background: var(--ink); color: white; }
-.entry-help, .preset-copy p, .text-preview, .parse-ready p { color: var(--muted); font-size: 13px; line-height: 1.8; margin: 12px 0; }
-.preset-copy { padding: 8px 0; }
-.preset-copy h3 { font-size: 17px; }
-.case-entry label { display: block; margin: 18px 0 8px; font-size: 14px; font-weight: 600; }
-.case-entry textarea, .case-entry select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--ink); font: inherit; font-size: 16px; }
-.case-entry textarea { min-height: 220px; resize: vertical; line-height: 1.7; }
-.case-entry input { display: block; max-width: 100%; font-size: 14px; min-height: 48px; }
-.case-entry input::file-selector-button { min-height: 44px; margin-right: 8px; }
-.case-entry select { margin-bottom: 20px; min-height: 48px; }
-.case-entry :focus-visible { outline: 3px solid #7aab97; outline-offset: 3px; }
-.entry-error { margin: 16px 0; padding: 12px; background: #fff0ed; border-radius: 8px; color: #a23f2e; line-height: 1.7; }
-.file-name { overflow-wrap: anywhere; font-size: 13px; }
-.text-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 250px; overflow: auto; font: inherit; }
-.text-preview summary { cursor: pointer; padding: 12px 0; }
-.parse-ready { background: #edf6ef; overflow-wrap: anywhere; }
-@media (max-width: 420px) { .case-entry, .parse-ready { padding: 20px; } }
+.case-entry { position: relative; padding: 26px; border: 3px solid var(--line); background: var(--panel); color: var(--text); box-shadow: 8px 8px 0 var(--red); }
+.case-entry::before { content: 'FILE'; position: absolute; top: 0; right: 0; padding: 6px 14px; color: #111; background: var(--red); font: 700 10px var(--font-mono); letter-spacing: .2em; }
+.case-entry h2 { display: inline-block; margin: 0 0 18px; padding: 6px 22px 6px 14px; color: #111; background: var(--gold); font-size: 18px; clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%); }
+
+.entry-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.entry-options button { flex: 1 1 150px; min-height: 54px; padding: 12px; border: 3px solid var(--line); background: #101010; color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; transition: transform .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease; }
+.entry-options button:hover { transform: translate(-3px, -3px); box-shadow: 4px 4px 0 var(--cyan); }
+.entry-options button[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 4px 4px 0 var(--gold); }
+
+.entry-help, .preset-copy p, .parse-ready p { margin: 14px 0; color: var(--dim); font-size: 13px; line-height: 1.9; }
+.char-count { font: 700 12px var(--font-mono); letter-spacing: .04em; }
+.char-count.ready { color: var(--green); }
+
+.preset-copy { margin-top: 16px; padding: 16px; border-left: 6px solid var(--cyan); background: #0f1a24; }
+.preset-copy h3 { margin: 0 0 8px; color: var(--cyan); font-size: 17px; }
+.preset-copy p { margin: 0; }
+
+.case-entry label { display: block; margin: 20px 0 8px; color: var(--gold); font: 700 12px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.case-entry textarea, .case-entry select { width: 100%; padding: 14px; border: 3px solid var(--line); background: #0b0b0b; color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.7; }
+.case-entry textarea::placeholder { color: #918c83; }
+.case-entry textarea { min-height: 200px; resize: vertical; }
+.case-entry select { min-height: 50px; margin-bottom: 20px; }
+.case-entry input { display: block; max-width: 100%; min-height: 48px; color: var(--text); font-size: 14px; }
+.case-entry input[type="file"] { padding: 10px; border: 3px dashed var(--line); background: #0b0b0b; }
+.case-entry input[type="file"]::file-selector-button { min-height: 44px; margin-right: 12px; padding: 0 18px; border: 2px solid #111; background: var(--gold); color: #111; font-weight: 800; cursor: pointer; }
+.case-entry .refresh-button { margin-top: 20px; }
+
+.file-name { margin: 12px 0 0; color: var(--gold); font: 700 13px var(--font-mono); overflow-wrap: anywhere; }
+.text-preview { margin-top: 18px; padding: 14px; border: 2px solid #3a3a3a; background: #0b0b0b; }
+.text-preview summary { cursor: pointer; padding: 6px 0; color: var(--text); font-weight: 700; }
+.text-preview pre { max-height: 250px; margin-top: 10px; padding: 14px; border-left: 5px solid var(--gold); background: #141414; color: #ded9ce; font: 13px var(--font-mono); line-height: 1.7; white-space: pre-wrap; overflow: auto; overflow-wrap: anywhere; }
+
+.parse-ready { margin-bottom: 20px; padding: 22px; border: 3px solid var(--line); background: var(--panel); color: var(--text); box-shadow: 8px 8px 0 var(--gold); overflow-wrap: anywhere; }
+.parse-ready h2 { display: inline-block; margin: 0 0 12px; padding: 5px 18px 5px 12px; color: #111; background: var(--gold); font-size: 17px; clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%); }
+
+@media (max-width: 420px) {
+  .case-entry, .parse-ready { padding: 18px; }
+  .entry-options button { flex: 1 1 100%; }
+}

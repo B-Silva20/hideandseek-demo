@@ -29,8 +29,9 @@ export async function testModelConnection(environment: NodeJS.ProcessEnv = proce
   if (!config) return { ok: false, status: 400, message: 'API Key 或 Base URL 无效。' }
   const model = environment.LLM_MODEL?.trim()
   if (!model) {
+    // 未填写模型名时只验证服务可访问，并回传服务端给出的第一个模型名供前端自动选中。
     const result = await listModels(environment, transport)
-    return result.ok ? { ok: true, model: result.models[0] ?? '服务可访问（尚未选择模型）' } : result
+    return result.ok ? { ok: true, model: result.models[0] ?? '' } : result
   }
   const url = new URL(config.url)
   url.pathname = `${url.pathname.replace(/\/$/, '')}/chat/completions`
