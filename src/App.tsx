@@ -1,7 +1,5 @@
-import ConnectionStatus from './components/ConnectionStatus'
 import './App.css'
 import CaseEntry from './components/CaseEntry'
-import ModelConfig from './components/ModelConfig'
 import { useState } from 'react'
 import type { CaseInput } from './types/case'
 import Briefing from './components/Briefing'
@@ -10,7 +8,6 @@ import Interrogation from './components/Interrogation'
 import type { SessionState } from './types/session'
 
 function App() {
-  const [caseInput, setCaseInput] = useState<CaseInput | null>(null)
   const [briefing, setBriefing] = useState<CaseBriefing | null>(null)
   const [interrogation, setInterrogation] = useState(false)
   const [parseError, setParseError] = useState('')
@@ -18,7 +15,7 @@ function App() {
   const [caseId, setCaseId] = useState<string | null>(null)
   useState(() => { const id=localStorage.getItem('sessionId'); if(id) void fetch(`/api/sessions/${id}`).then(r=>r.ok?r.json():null).then(s=>{if(s){setSession(s);setInterrogation(true)}}) })
   async function submitCase(input: CaseInput | null) {
-    setCaseInput(input); setBriefing(null); setInterrogation(false); setParseError('')
+    setBriefing(null); setInterrogation(false); setParseError('')
     if (!input) return
     try {
       const created = await fetch('/api/cases', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ sourceText: input.text, sourceType: input.sourceType === 'text' ? 'paste' : input.sourceType }) })
@@ -54,22 +51,8 @@ function App() {
       </section>
 
       <CaseEntry onReady={(input) => { void submitCase(input) }} />
-      {caseInput && <section className="parse-ready" role="status" aria-label="解析输入已就绪">
-        <h2>案件文本已就绪</h2>
-        <p>来源：<code>{caseInput.sourceType}</code> · {Array.from(caseInput.text).length.toLocaleString()} 字符</p>
-        <p>已统一为案件文本，等待后续解析功能接入。当前尚未开始解析。</p>
-      </section>}
       {parseError && <p className="entry-error" role="alert">{parseError}</p>}
-      <ModelConfig />
-      <ConnectionStatus />
-
-      <section className="scope-card" aria-labelledby="scope-title">
-        <h2 id="scope-title">当前进度</h2>
-        <p>本步骤支持预置案件、粘贴文本与 TXT 上传，统一准备案件解析输入。</p>
-        <p>模型解析与审讯游戏功能留待后续步骤，当前尚未开放。</p>
-      </section>
-
-      <footer className="page-footer">项目启动页 · 等待本步骤确认</footer>
+      <footer className="page-footer">案件文本由后端安全解析 · API 密钥不会出现在网页中</footer>
     </main>
   )
 }
