@@ -1,0 +1,35 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+dist-server
+*.local
+
+# Backend secrets and private local case text must never be committed.
+.env
+.env.*
+!.env.example
+tests/fixtures/private/*
+!tests/fixtures/private/.gitkeep
+
+# Local verification artifacts
+artifacts/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
