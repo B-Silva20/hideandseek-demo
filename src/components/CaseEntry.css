@@ -1,5 +1,4 @@
 .case-entry { position: relative; padding: 26px; border: 3px solid var(--line); background: var(--panel); color: var(--text); box-shadow: 8px 8px 0 var(--red); }
-.case-entry::before { content: 'FILE'; position: absolute; top: 0; right: 0; padding: 6px 14px; color: #111; background: var(--red); font: 700 10px var(--font-mono); letter-spacing: .2em; }
 .case-entry h2 { display: inline-block; margin: 0 0 18px; padding: 6px 22px 6px 14px; color: #111; background: var(--gold); font-size: 18px; clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%); }
 
 .entry-options { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -7,13 +6,10 @@
 .entry-options button:hover { transform: translate(-3px, -3px); box-shadow: 4px 4px 0 var(--cyan); }
 .entry-options button[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 4px 4px 0 var(--gold); }
 
-.entry-help, .preset-copy p, .parse-ready p { margin: 14px 0; color: var(--dim); font-size: 13px; line-height: 1.9; }
+.entry-help, .parse-ready p { margin: 14px 0; color: var(--dim); font-size: 13px; line-height: 1.9; }
 .char-count { font: 700 12px var(--font-mono); letter-spacing: .04em; }
 .char-count.ready { color: var(--green); }
 
-.preset-copy { margin-top: 16px; padding: 16px; border-left: 6px solid var(--cyan); background: #0f1a24; }
-.preset-copy h3 { margin: 0 0 8px; color: var(--cyan); font-size: 17px; }
-.preset-copy p { margin: 0; }
 
 .case-entry label { display: block; margin: 20px 0 8px; color: var(--gold); font: 700 12px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
 .case-entry textarea, .case-entry select { width: 100%; padding: 14px; border: 3px solid var(--line); background: #0b0b0b; color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.7; }
@@ -37,3 +33,10 @@
   .case-entry, .parse-ready { padding: 18px; }
   .entry-options button { flex: 1 1 100%; }
 }
+
+/* P5R 无素材模式：输入仍为真实表单，外层纸片只负责舞台感。 */
+.case-entry, .parse-ready { border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, calc(100% - 26px) 100%, 0 100%); box-shadow: 12px 13px 0 var(--red); }
+.case-entry h2, .parse-ready h2 { background: #111; color: #fff; }
+.entry-options button { border: 0; background: #111; clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); box-shadow: inset 0 0 0 2px #111; }.entry-options button:hover, .entry-options button[aria-pressed="true"] { background: var(--red); color: #fff; box-shadow: inset 0 0 0 2px #111, 5px 6px 0 #111; }
+.entry-help, .parse-ready p { color: #352d28; }.case-entry label { color: var(--red); }.case-entry textarea, .case-entry select, .case-entry input[type="file"] { border: 2px solid #111; background: #fffdf8; color: #111; }.case-entry textarea::placeholder { color: #776c64; }.case-entry input[type="file"]::file-selector-button { background: var(--red); color: #fff; }
+.text-preview { border-color: #111; background: #fffdf8; }.text-preview summary { color: #111; }.text-preview pre { border-left-color: var(--red); background: #1c1c1c; color: var(--paper); }.file-name { color: var(--red); }

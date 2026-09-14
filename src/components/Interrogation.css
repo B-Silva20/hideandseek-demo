@@ -8,8 +8,6 @@
 .room-back:hover { background: var(--line); color: #111; }
 .room-title { flex: 1 1 auto; min-width: 0; overflow: hidden; color: var(--text); font-size: 15px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .room-title small { margin-left: 10px; color: var(--dim); font: 11px var(--font-mono); letter-spacing: .1em; }
-.room-source { flex: 0 0 auto; padding: 5px 10px; border: 1px solid var(--cyan); background: #0f1a24; color: var(--cyan); font: 700 10px var(--font-mono); letter-spacing: .08em; }
-.room-source.rule { border-color: var(--gold); background: #241f10; color: var(--gold); }
 .countdown { flex: 0 0 auto; padding: 6px 12px; border: 2px solid var(--line); background: #141414; color: var(--text); font: 800 12px var(--font-mono); }
 .countdown.danger { border-color: var(--red); background: #2a1114; color: #ff8b95; }
 .model-btn { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; padding: 8px 14px; border: 2px solid var(--line); background: transparent; color: var(--text); font: 700 12px var(--font-mono); cursor: pointer; transition: background .15s ease, color .15s ease; }
@@ -71,6 +69,26 @@
 .observe-btn:disabled { border-color: #3a3a3a; color: #8c8880; cursor: not-allowed; }
 .action-hint { flex: 1 1 200px; color: var(--dim); font: 11px var(--font-mono); line-height: 1.7; }
 
+/* 话术选项：对话图的玩家侧节点，按层级配色（金＝常规、青＝共情、红＝施压与风险） */
+.dialogue-options { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 10px; padding: 12px 16px; border-top: 2px solid #3a3a3a; background: #141414; }
+.dialogue-options-head { display: inline-flex; align-items: center; color: var(--dim); font: 700 11px var(--font-mono); letter-spacing: .18em; }
+.dialogue-choice { display: block; max-width: 260px; padding: 8px 12px; border: 3px solid var(--line); background: #101010; color: var(--text); text-align: left; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease; }
+.dialogue-choice strong { display: block; font-size: 13px; }
+.dialogue-choice small { display: block; margin-top: 5px; color: var(--dim); font: 11px var(--font-mono); line-height: 1.6; }
+.dialogue-choice.open { border-color: var(--gold); }
+.dialogue-choice.empathy { border-color: var(--cyan); }
+.dialogue-choice.press { border-color: var(--red); }
+.dialogue-choice.risky { border-color: var(--red); border-style: dashed; }
+.dialogue-choice:hover:not(:disabled) { transform: translate(-3px, -3px); box-shadow: 4px 4px 0 var(--gold); }
+.dialogue-choice.open:hover:not(:disabled) { background: var(--gold); color: #111; }
+.dialogue-choice.open:hover:not(:disabled) small { color: #3a3222; }
+.dialogue-choice.empathy:hover:not(:disabled) { background: var(--cyan); color: #06141c; }
+.dialogue-choice.empathy:hover:not(:disabled) small { color: #12333f; }
+.dialogue-choice.press:hover:not(:disabled), .dialogue-choice.risky:hover:not(:disabled) { background: var(--red); color: #fff; box-shadow: 4px 4px 0 var(--gold); }
+.dialogue-choice.press:hover:not(:disabled) small, .dialogue-choice.risky:hover:not(:disabled) small { color: #ffe3e5; }
+.dialogue-choice:disabled { border-style: dashed; border-color: #3a3a3a; background: #141414; color: #8c8880; cursor: not-allowed; }
+.dialogue-choice:disabled small { color: #6f6b64; }
+
 /* 证物栏 */
 .evidence-bar { flex: 0 0 auto; padding: 12px 16px; border-top: 2px solid #3a3a3a; }
 .evidence-bar-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
@@ -96,6 +114,11 @@
 .send-btn { flex: 0 0 auto; padding: 0 26px; border: 3px solid #111; background: var(--gold); color: #111; font-weight: 800; font-size: 14px; letter-spacing: .06em; cursor: pointer; box-shadow: 5px 5px 0 var(--red); transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
 .send-btn:hover:not(:disabled) { transform: translate(-3px, -3px); background: #fff; box-shadow: 8px 8px 0 var(--red); }
 .send-btn:disabled { background: var(--panel-2); border-color: #3a3a3a; color: #8c8880; box-shadow: 5px 5px 0 #000; cursor: not-allowed; }
+.model-error { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 16px 10px; }
+.model-error-actions { display: inline-flex; flex: 0 0 auto; gap: 8px; }
+.model-error-actions button { border: 0; padding: 7px 10px; background: var(--paper); color: #111; font: 800 11px var(--font-mono); cursor: pointer; }
+.model-error-actions button:last-child { background: var(--red); color: #fff; }
+.model-error-actions button:disabled { opacity: .55; cursor: wait; }
 
 /* ---------- 矛盾板 ---------- */
 .contra-board { padding: 14px; border: 3px solid var(--line); background: var(--panel); }
@@ -174,10 +197,14 @@
   .room-right { width: 268px; }
 }
 
-/* 窄屏：单列 + 分页签切换，保证对话区宽度 */
-@media (max-width: 880px) {
+/* 窄屏或低矮窗口：单列 + 分页签切换，优先保证对话区可用。 */
+/* 高缩放会同时缩小可用 CSS 宽高；在仍有平板宽度时也切到分页，
+   不再让三栏把中间对话与右侧数值挤成细条。 */
+@media (max-width: 1180px), (max-height: 820px) {
   .room-topbar-main { flex-wrap: wrap; }
   .room-title { flex: 1 1 100%; order: 3; white-space: normal; }
+  .room-meters { display: flex; gap: 12px; }
+  .meter { min-width: 0; }
   /* 单列布局：同一时刻只显示一栏，由分页签切换 */
   .room-body { flex-direction: column; }
   .room-left, .room-right, .room-main { display: none; width: 100%; min-width: 0; border: none; }
@@ -191,9 +218,55 @@
   .action-hint { flex: 1 1 100%; }
 }
 
+/* 浏览器放大、横向平铺或小窗口会先耗尽纵向空间。此时允许页面滚动，
+   并给当前分页保留稳定的对话高度，避免输入框被挤出视口。 */
+@media (max-height: 820px) {
+  .interrogation { height: auto; min-height: 100dvh; overflow: visible; }
+  .room-body { flex: 0 0 auto; min-height: 520px; }
+}
+
+/* 极低窗口保持所有读数，页面改为滚动；不要为了腾空间隐藏敌意等关键状态。 */
+@media (max-height: 460px) {
+  .room-topbar-main { padding: 8px 12px; }
+  .room-meters { padding: 8px 12px 14px; }
+  .meter-track { height: 12px; }
+}
+
 @media (max-width: 480px) {
   .ending-page { padding: 28px 16px 56px; }
   .ending-actions button { min-width: 100%; }
   .chat-input-wrap { flex-direction: column; }
   .send-btn { min-height: 48px; }
+  .model-error { align-items: flex-start; flex-direction: column; }
 }
+
+/* P5R 无素材模式：把审讯拆成黑色舞台、纸片信息和单一红色危险动作。 */
+.interrogation { position: relative; background: #111; }.interrogation::before { content: ''; position: absolute; z-index: 0; width: 46vw; height: 42vh; top: 18%; left: -25vw; background: var(--red); clip-path: polygon(0 0, 100% 26%, 68% 100%, 0 72%); opacity: .82; pointer-events: none; }.room-topbar, .room-body, .mobile-tabs { position: relative; z-index: 1; }
+.room-topbar { border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%); }.room-topbar-main { padding: 14px 18px; }.room-back, .model-btn { border: 0; background: #111; color: var(--paper); clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%); }.room-back:hover, .model-btn:hover { background: var(--red); color: #fff; }.room-title { color: #111; font-family: var(--font-display); font-size: 22px; font-style: italic; letter-spacing: -.02em; }.room-title small, .meter-head { color: #463c35; }.countdown { border: 0; background: var(--red); color: #fff; clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }.room-meters { border-top-color: #b9aa9d; }.meter-head b { color: #111; }.meter-track { border-color: #111; background: #fff; clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%); }.meter-fill.confidence, .meter-fill.hostility { background: var(--red); }.meter-fill.trust { background: #111; }
+.room-left { border-right: 0; padding: 18px 12px 18px 18px; background: linear-gradient(90deg, #111 85%, transparent); }.room-right { border-left: 0; padding: 18px 18px 18px 12px; background: linear-gradient(90deg, transparent, #111 15%); }.column-title { padding: 7px 10px; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%); }.column-title span { color: var(--red); }
+.suspect-card { border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); box-shadow: 5px 6px 0 #111; }.suspect-card.active { background: var(--red); box-shadow: 7px 8px 0 var(--paper); }.suspect-initial { border: 0; background: #111; color: var(--paper); transform: rotate(-6deg); }.suspect-card.active .suspect-initial { background: var(--paper); color: var(--red); }.suspect-name, .suspect-meta, .suspect-stats span { color: #111; }.suspect-card.active .suspect-name, .suspect-card.active .suspect-meta, .suspect-card.active .suspect-stats span { color: #fff; }.suspect-stats span, .suspect-card.active .suspect-stats span { border-color: currentColor; }.suspect-btn { border: 0; background: #111; color: var(--paper); }.suspect-btn:hover:not(:disabled) { background: var(--paper); color: #111; box-shadow: inset 0 0 0 2px #111; }.arrest-btn { border: 0; clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%); }
+.room-main { background: #151515; }.chat-history { background: linear-gradient(120deg, #151515 0 65%, #1c1c1c 65%); }.bubble { border: 0; clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); box-shadow: 4px 5px 0 #000; }.bubble.npc { background: var(--paper); color: #111; border-left: 0; }.bubble.user { background: var(--red); color: #fff; border-right: 0; }.bubble.system { background: #111; color: var(--paper); border-left: 6px solid var(--red); }.bubble-speaker { color: var(--red); }
+.room-actions, .evidence-bar, .dialogue-options, .chat-input-wrap { border-top: 0; background: #111; }.observe-btn { border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%); }.observe-btn:hover:not(:disabled) { background: var(--red); color: #fff; box-shadow: 5px 6px 0 var(--paper); }.action-hint { color: var(--paper); }
+.evidence-bar-head h3, .dialogue-options-head { color: var(--paper); }.evidence-chip { border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%); box-shadow: inset 0 0 0 2px #111; }.evidence-chip:hover:not(:disabled) { border: 0; background: var(--red); color: #fff; box-shadow: inset 0 0 0 2px #fff, 5px 6px 0 var(--paper); }.evidence-chip small { color: #4b4039; }.evidence-chip.presented { background: #dfe9df; border: 0; }.evidence-chip.fresh { border: 0; box-shadow: inset 0 0 0 3px var(--red); }
+.dialogue-choice { border: 0; background: #2b2b2b; clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%); box-shadow: inset 0 0 0 2px var(--paper); }.dialogue-choice:hover:not(:disabled) { background: var(--red); color: #fff; box-shadow: inset 0 0 0 2px #fff, 5px 6px 0 var(--paper); transform: translate(-4px, -4px); }.dialogue-choice:hover:not(:disabled) small { color: #fff; }
+.chat-input-wrap textarea { border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, 97% 100%, 0 100%); }.send-btn { border: 0; background: var(--red); color: #fff; clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%); box-shadow: 5px 6px 0 var(--paper); }.send-btn:hover:not(:disabled) { background: var(--paper); color: #111; box-shadow: 8px 9px 0 var(--red); }
+.contra-board { border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%); box-shadow: 7px 8px 0 var(--red); }.contra-title, .contra-title span, .contra-empty { color: #111; }.contra-item { border: 0; background: var(--red); color: #fff; clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%); }.contra-topic { color: #fff; }.contra-col { background: #111; }.contra-name, .contra-col p { color: var(--paper); }.objective { border-left: 0; background: #111; color: var(--paper); clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%); }.objective h4 { color: var(--paper); }.objective p { color: #d7cec1; }
+.mobile-tabs { background: #111; border-top: 0; }.mobile-tab { background: #262626; color: var(--paper); }.mobile-tab.active { background: var(--red); color: #fff; }
+.room-modal { background: rgba(17, 17, 17, .9); }.room-modal-close { border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%); }.room-modal-close:hover { background: var(--red); color: #fff; }
+
+/* 分区导航是审讯室的主入口：桌面和手机都使用同一套顺序，避免缩放时重排逻辑。 */
+.interrogation { height: auto; min-height: 100dvh; overflow: visible; }
+.room-topbar { clip-path: none; }
+.room-meters { align-items: flex-start; }
+.meter { flex: 0 1 360px; width: min(100%, 360px); min-width: 0; }
+.meter-track { width: 100%; max-width: 340px; }
+.mobile-tabs { display: flex; order: 0; position: sticky; top: 0; z-index: 3; }
+.room-body { flex: 0 0 auto; flex-direction: column; min-height: 560px; }
+.room-left, .room-right, .room-main { display: none; width: 100%; min-width: 0; border: 0; }
+.interrogation[data-mobile-view="suspect"] .room-left { display: flex; flex: 1 1 auto; }
+.interrogation[data-mobile-view="chat"] .room-main { display: flex; flex: 1 1 auto; }
+.interrogation[data-mobile-view="board"] .room-right { display: flex; flex: 1 1 auto; }
+.current-subject { display: flex; flex: 0 0 auto; align-items: center; gap: 14px; padding: 16px 20px; color: #111; background: var(--paper); clip-path: polygon(0 0, 100% 0, 97% 100%, 0 100%); box-shadow: inset 0 -5px 0 var(--red); }
+.current-subject-mark { display: grid; flex: 0 0 auto; place-items: center; width: 46px; height: 46px; color: var(--paper); background: #111; font-family: var(--font-display); font-size: 28px; transform: rotate(-7deg); }
+.current-subject p { margin: 0; color: var(--red); font: 800 10px var(--font-mono); letter-spacing: .14em; }.current-subject h2 { margin: 2px 0; font-size: 20px; line-height: 1.1; }.current-subject div > span { font-size: 12px; font-weight: 700; }.current-subject-stats { display: flex; flex: 1 1 auto; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }.current-subject-stats b { padding: 4px 8px; border: 2px solid #111; font: 800 11px var(--font-mono); }.current-subject-stats b:nth-child(2) { color: #fff; background: var(--red); border-color: var(--red); }
+@media (max-width: 560px) { .current-subject { align-items: flex-start; flex-wrap: wrap; padding: 14px; }.current-subject-stats { flex-basis: 100%; justify-content: flex-start; }.meter { flex-basis: 280px; }.room-meters { padding-inline: 14px; } }

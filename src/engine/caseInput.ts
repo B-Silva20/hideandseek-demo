@@ -2,7 +2,8 @@ import type { CaseInput, SourceType } from '../types/case'
 // 长度限制与后端共用同一份常量，避免前后端提示不一致。
 import { CASE_TEXT_MAX_LENGTH, CASE_TEXT_MIN_LENGTH } from '../types/api'
 
-export const MAX_FILE_BYTES = 5 * 1024 * 1024
+/** 文件体积另设上限，兼容 UTF-8 与 GB18030 的书籍级 TXT。 */
+export const MAX_FILE_BYTES = 16 * 1024 * 1024
 export type TextEncoding = 'auto' | 'utf-8' | 'gb18030'
 
 export function prepareCaseInput(raw: string, sourceType: SourceType): CaseInput {
@@ -21,7 +22,7 @@ export function prepareCaseInput(raw: string, sourceType: SourceType): CaseInput
 
 export function decodeCaseBytes(bytes: ArrayBuffer, encoding: TextEncoding = 'auto') {
   if (!bytes.byteLength) throw new Error('文件为空，请重新选择 TXT 文件。')
-  if (bytes.byteLength > MAX_FILE_BYTES) throw new Error('文件超过 5 MB，请选择更小的 TXT 文件。')
+  if (bytes.byteLength > MAX_FILE_BYTES) throw new Error('文件超过 16 MB，请选择更小的 TXT 文件。')
   const candidates = encoding === 'auto' ? ['utf-8', 'gb18030'] as const : [encoding]
   for (const candidate of candidates) {
     try { return { text: new TextDecoder(candidate, { fatal: true }).decode(bytes), encoding: candidate } }
@@ -32,7 +33,7 @@ export function decodeCaseBytes(bytes: ArrayBuffer, encoding: TextEncoding = 'au
 
 export async function readCaseFile(file: File, encoding: TextEncoding = 'auto') {
   if (!/\.txt$/i.test(file.name)) throw new Error('请选择扩展名为 .txt 的文件。')
-  if (file.size > MAX_FILE_BYTES) throw new Error('文件超过 5 MB，请选择更小的 TXT 文件。')
+  if (file.size > MAX_FILE_BYTES) throw new Error('文件超过 16 MB，请选择更小的 TXT 文件。')
   if (!file.size) throw new Error('文件为空，请重新选择 TXT 文件。')
   let bytes: ArrayBuffer
   try { bytes = await file.arrayBuffer() } catch { throw new Error('文件读取失败，请重新选择文件或粘贴案件文本。') }

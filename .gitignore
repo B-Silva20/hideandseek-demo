@@ -20,8 +20,22 @@ dist-server
 tests/fixtures/private/*
 !tests/fixtures/private/.gitkeep
 
+# 本地游戏存档：含案件原文与案件真相，只留在本机，绝不入库
+.data/
+
+# Windows 一键启动器编译产物
+看破！.exe
+
 # Local verification artifacts
 artifacts/
+
+# 仅供本机排查与对话交接，不属于公开项目内容。
+.agents/
+.codebuddy/
+*.err
+本次开发对话总结*.txt
+*.exe
+虚构推理.zip
 
 # Editor directories and files
 .vscode/*

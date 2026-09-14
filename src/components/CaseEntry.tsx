@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react'
-import { decodeCaseBytes, prepareCaseInput, readCaseFile } from '../engine/caseInput'
+import { prepareCaseInput, readCaseFile } from '../engine/caseInput'
 import type { TextEncoding } from '../engine/caseInput'
 import type { CaseInput, SourceType } from '../types/case'
-import { CASE_TEXT_MIN_LENGTH } from '../types/api'
+import { CASE_TEXT_MAX_LENGTH, CASE_TEXT_MIN_LENGTH } from '../types/api'
 import './CaseEntry.css'
 
-const labels: Record<SourceType, string> = { preset: '使用预置案件', text: '粘贴案件文本', txt: '上传 TXT 文件' }
+const labels: Record<SourceType, string> = { text: '粘贴案件文本', txt: '上传 TXT 文件' }
 export default function CaseEntry({ onReady }: { onReady: (input: CaseInput | null) => void }) {
-  const [mode, setMode] = useState<SourceType>('preset')
+  const [mode, setMode] = useState<SourceType>('text')
   const [text, setText] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [encoding, setEncoding] = useState<TextEncoding>('auto')
@@ -28,17 +28,10 @@ export default function CaseEntry({ onReady }: { onReady: (input: CaseInput | nu
       let input: CaseInput
       let decodedEncoding = ''
       if (mode === 'text') input = prepareCaseInput(text, 'text')
-      else if (mode === 'txt') {
+      else {
         if (!file) throw new Error('请先选择 TXT 文件。')
         const result = await readCaseFile(file, encoding)
         input = result.input; decodedEncoding = result.encoding
-      } else {
-        let response: Response
-        try { response = await fetch('/api/cases/preset', { signal: AbortSignal.timeout(15_000), cache: 'no-store' }) }
-        catch { throw new Error('预置案件读取失败或超时，请确认后端已启动，或使用其他输入方式。') }
-        if (!response.ok) throw new Error('预置案件不可用，请确认后端及本地案件文件已就绪，或使用其他输入方式。')
-        const decoded = decodeCaseBytes(await response.arrayBuffer())
-        input = prepareCaseInput(decoded.text, 'preset'); decodedEncoding = decoded.encoding
       }
       if (current !== revision.current) return
       setPreview(input.text.slice(0, 600))
@@ -53,8 +46,7 @@ export default function CaseEntry({ onReady }: { onReady: (input: CaseInput | nu
     <div className="entry-options" role="group" aria-label="案件输入方式">
       {(Object.keys(labels) as SourceType[]).map((source) => <button key={source} type="button" aria-pressed={mode === source} onClick={() => { reset(); setMode(source) }}>{labels[source]}</button>)}
     </div>
-    <p className="entry-help">至少 {CASE_TEXT_MIN_LENGTH} 个字符，最多 20 万字符；TXT 文件最大 5 MB。</p>
-    {mode === 'preset' && <div className="preset-copy"><h3>占星术杀人魔法</h3><p>读取已配置的本地预置案件，作为本次调查的案件文本。</p></div>}
+    <p className="entry-help">至少 {CASE_TEXT_MIN_LENGTH} 个字符，最多 {CASE_TEXT_MAX_LENGTH.toLocaleString()} 个字符；TXT 文件最大 16 MB。超大文本会分段解析。</p>
     {mode === 'text' && <>
       <label htmlFor="case-text">案件文本</label>
       <textarea id="case-text" value={text} placeholder="粘贴案件背景、人物、线索与事件经过……" onChange={(event) => { reset(); setText(event.target.value) }} />
@@ -72,8 +64,7 @@ export default function CaseEntry({ onReady }: { onReady: (input: CaseInput | nu
       </select>
     </>}
     {error && <p role="alert" className="entry-error">{error}</p>}
-    <button className="refresh-button" type="button" disabled={busy} onClick={() => void submit()}>{busy ? '正在读取案件…' : mode === 'preset' ? '进入预置案件' : '准备案件文本'}</button>
-    <p className="entry-help">{mode === 'preset' ? '预置案件自带测试 Briefing，点击后可直接进入审讯，不需要调用模型。' : '提交后会调用模型生成 Briefing；失败可在下方重新提交。'}</p>
+    <button className="refresh-button" type="button" disabled={busy} onClick={() => void submit()}>{busy ? '正在读取案件…' : '准备案件文本'}</button>
     {notice && <div className="text-preview"><p>{notice}</p><details><summary>查看文本开头，检查编码</summary><pre>{preview}</pre></details></div>}
   </section>
 }

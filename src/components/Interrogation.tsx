@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type { CaseBriefing } from '../types/api'
-import type { Contradiction, EndingKind, SessionEvent, SessionState, SessionTurnResponse } from '../types/session'
+import type { Contradiction, DialogueChoice, EndingKind, SessionEvent, SessionState, SessionTurnResponse } from '../types/session'
 import ModelConfig from './ModelConfig'
 import { AlertIcon, BoltIcon, CheckIcon, CloseIcon, EyeIcon, GearIcon, LockIcon } from './icons'
 import './Interrogation.css'
@@ -24,6 +24,7 @@ const ENDING_VIEW: Record<EndingKind, { badge: string; title: string; tone: stri
 
 type ChatKind = 'user' | 'npc' | 'system'
 type MobileTab = 'suspect' | 'chat' | 'board'
+type ActionPayload = { text?: string; evidenceId?: string; observe?: boolean; contradictionId?: string; choiceId?: string; useRuleFallback?: boolean }
 
 interface ChatItem {
   id: string
@@ -50,28 +51,49 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
   const [suspect, setSuspect] = useState(session.currentSubject ?? briefing.characters[0]?.name ?? '')
   const [timeline, setTimeline] = useState<ChatItem[]>(() => toTimeline(session.history))
   const [question, setQuestion] = useState('')
-  const [source, setSource] = useState<'model' | 'rule' | null>(null)
   const [error, setError] = useState('')
+  const [pendingFallback, setPendingFallback] = useState<ActionPayload | null>(null)
   const [busy, setBusy] = useState(false)
   const [mobileTab, setMobileTab] = useState<MobileTab>('chat')
   const [showModel, setShowModel] = useState(false)
   const [flashEvidenceId, setFlashEvidenceId] = useState('')
   const [flashTrust, setFlashTrust] = useState(false)
   const [showReplay, setShowReplay] = useState(false)
+  /** 当前可用话术：派生数据，按「会话 + 当前嫌疑人」从服务端现取。 */
+  const [choices, setChoices] = useState<DialogueChoice[]>([])
   /** 与后端无关：只用来给「本局新解锁」的证据打标。 */
   const [lockedAtStart] = useState(() => new Set(session.evidence.filter((item) => !item.unlocked).map((item) => item.evidenceId)))
   const sequence = useRef(0)
   const historyRef = useRef<HTMLDivElement>(null)
+  const modelButtonRef = useRef<HTMLButtonElement>(null)
+  const modelCloseRef = useRef<HTMLButtonElement>(null)
+  const wasModelOpen = useRef(false)
+
+  useEffect(() => {
+    if (!showModel) {
+      if (wasModelOpen.current) modelButtonRef.current?.focus()
+      wasModelOpen.current = false
+      return
+    }
+    wasModelOpen.current = true
+    modelCloseRef.current?.focus()
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setShowModel(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [showModel])
 
   const ended = state.gameState === 'ended'
   const actionPoints = state.actionPoints
   /** 该嫌疑人信任跌破阈值后拒绝再回答，任何行动都会被后端拒绝。 */
   const terminated = state.terminated.includes(suspect)
-  const canAct = !busy && !ended && !terminated && actionPoints > 0 && Boolean(suspect)
+  const canAct = !busy && !ended && !terminated && (actionPoints === null || actionPoints > 0) && Boolean(suspect)
   const confidence = Math.max(0, Math.min(100, state.caseConfidence))
   const currentTrust = state.trust[suspect] ?? 0
   const currentHostility = state.hostility[suspect] ?? 0
   const presentedToCurrent = state.evidence.filter((item) => item.presentedTo.includes(suspect)).length
+  const currentPerson = briefing.characters.find((person) => person.name === suspect)
 
   useEffect(() => {
     const element = historyRef.current
@@ -91,24 +113,48 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
     return () => window.clearTimeout(timer)
   }, [flashTrust])
 
+  /*
+   * 话术是派生数据，不进 SessionState：切换嫌疑人或完成一次行动后重新取一次，
+   * 保证按钮列表永远对应当前这个人和当前进度。取不到时退化为自由输入。
+   */
+  useEffect(() => {
+    if (ended) return
+    let active = true
+    void (async () => {
+      try {
+        const response = await fetch(`/api/sessions/${session.sessionId}/choices?suspect=${encodeURIComponent(suspect)}`, { cache: 'no-store' })
+        if (!response.ok) return
+        const body = await response.json().catch(() => ({})) as { choices?: DialogueChoice[] }
+        if (active) setChoices(body.choices ?? [])
+      } catch { /* 拿不到话术不影响自由提问 */ }
+    })()
+    return () => { active = false }
+  }, [session.sessionId, suspect, state.turn, state.actionPoints, ended])
+
   function nextId(prefix: string) {
     sequence.current += 1
     return `${prefix}_${sequence.current}`
   }
 
   /** 一次行动 = 提问 / 出示证据 / 沉默观察，统一消耗 1 行动点。 */
-  async function act(payload: { text?: string; evidenceId?: string; observe?: boolean; contradictionId?: string }): Promise<boolean> {
+  async function act(payload: ActionPayload): Promise<boolean> {
     if (!canAct) return false
     const submittedText = payload.text ?? ''
-    const actionEvidence = payload.evidenceId
-      ? state.evidence.find((item) => item.evidenceId === payload.evidenceId) ?? null
+    // 选话术时，提问文本与附带证据都以服务端生成的那一份为准，这里只用于即时反馈与气泡文案。
+    const submittedChoice = payload.choiceId ? choices.find((item) => item.choiceId === payload.choiceId) ?? null : null
+    const evidenceId = payload.evidenceId ?? submittedChoice?.evidenceId ?? ''
+    const actionEvidence = evidenceId
+      ? state.evidence.find((item) => item.evidenceId === evidenceId) ?? null
       : null
     const playerText = payload.observe
       ? '【沉默观察】'
-      : actionEvidence ? `【出示证据：${actionEvidence.title}】${submittedText}` : submittedText
+      : submittedChoice
+        ? `【${submittedChoice.label}】${submittedChoice.question}`
+        : actionEvidence ? `【出示证据：${actionEvidence.title}】${submittedText}` : submittedText
 
     setBusy(true)
     setError('')
+    setPendingFallback(null)
     try {
       const response = await fetch(`/api/sessions/${state.sessionId}/messages`, {
         method: 'POST',
@@ -116,12 +162,16 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
         body: JSON.stringify({ suspectId: suspect, ...payload }),
       })
       // 响应体不是 JSON（例如代理返回 HTML 错误页）时按失败处理，不把 SyntaxError 抛给用户。
-      const body = await response.json().catch(() => ({})) as Partial<SessionTurnResponse> & { error?: string }
+      const body = await response.json().catch(() => ({})) as Partial<SessionTurnResponse> & { error?: string; fallbackAvailable?: boolean }
+      if (!response.ok && body.fallbackAvailable) {
+        setError(body.error || '模型暂时不可用。')
+        setPendingFallback(payload)
+        return false
+      }
       if (!response.ok) throw new Error(body.error || '审讯失败，请重试。')
       if (!body.session) throw new Error('审讯失败，请重试。')
 
       setState(body.session)
-      setSource(body.source ?? null)
       // 只清空本次提交的内容：等待服务端返回期间用户新输入的文字不能丢。
       setQuestion((current) => (current.trim() === submittedText.trim() ? '' : current))
       if (actionEvidence) setFlashEvidenceId(actionEvidence.evidenceId)
@@ -203,11 +253,34 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
     }
   }
 
+  function retryModelAction() {
+    if (pendingFallback) void act(pendingFallback)
+  }
+
+  function continueWithRule() {
+    if (pendingFallback) void act({ ...pendingFallback, useRuleFallback: true })
+  }
+
+  function trapModelFocus(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Tab') return
+    const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href]'))
+    if (controls.length === 0) return
+    const first = controls[0]
+    const last = controls[controls.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
   /* ------------------------------ 结局 ------------------------------ */
 
   if (ended) {
     const outcome = ENDING_VIEW[state.endingKind ?? (confidence >= WIN_CONFIDENCE ? 'confidence' : 'timeout')]
-    const consumed = state.actionPointsTotal - state.actionPoints
+    const consumed = state.actionPointsTotal === null || state.actionPoints === null ? null : state.actionPointsTotal - state.actionPoints
     const presented = state.evidence.filter((item) => item.presentedTo.length > 0).length
     return <main className="ending-page">
       <div className="ending-inner">
@@ -218,7 +291,7 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
         <section className="ending-review">
           <h2>你的审讯记录</h2>
           <ul>
-            <li><span>消耗行动点</span><b>{consumed} / {state.actionPointsTotal}</b></li>
+            <li><span>消耗行动点</span><b>{consumed === null ? '不限' : `${consumed} / ${state.actionPointsTotal}`}</b></li>
             <li><span>案件置信度</span><b>{confidence}%</b></li>
             <li><span>发现矛盾</span><b>{state.contradictions.length} 处</b></li>
             <li><span>出示证据</span><b>{presented} / {state.evidence.length} 件</b></li>
@@ -261,9 +334,8 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
       <div className="room-topbar-main">
         <button className="room-back" type="button" onClick={onBack}>返回</button>
         <span className="room-title">{briefing.title}<small>审讯进行中</small></span>
-        {source && <span className={`room-source ${source}`}>{source === 'model' ? '模型生成' : '内置逻辑'}</span>}
-        <span className={`countdown ${actionPoints <= 5 ? 'danger' : ''}`}>剩余行动点 {actionPoints} / {state.actionPointsTotal}</span>
-        <button className={`model-btn ${showModel ? 'on' : ''}`} type="button" onClick={() => setShowModel(true)}>
+        <span className={`countdown ${actionPoints !== null && actionPoints <= 5 ? 'danger' : ''}`}>{actionPoints === null ? '练手模式 · 不限行动点' : `剩余行动点 ${actionPoints} / ${state.actionPointsTotal}`}</span>
+        <button ref={modelButtonRef} className={`model-btn ${showModel ? 'on' : ''}`} type="button" onClick={() => setShowModel(true)}>
           <GearIcon size={14} />模型
         </button>
       </div>
@@ -288,6 +360,11 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
         </div>
       </div>
     </div>
+
+    <nav className="mobile-tabs" aria-label="审讯室分区">
+      {([['suspect', '嫌疑人'], ['chat', '审讯'], ['board', '矛盾板']] as Array<[MobileTab, string]>).map(([key, label]) =>
+        <button key={key} type="button" className={`mobile-tab ${mobileTab === key ? 'active' : ''}`} onClick={() => setMobileTab(key)}>{label}</button>)}
+    </nav>
 
     <div className="room-body">
       <aside className="room-left">
@@ -321,6 +398,11 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
       </aside>
 
       <section className="room-main">
+        <header className="current-subject" aria-label="当前审讯对象">
+          <span className="current-subject-mark" aria-hidden="true">{Array.from(suspect)[0] ?? '?'}</span>
+          <div><p>NOW INTERROGATING</p><h2>{suspect || '尚未选择嫌疑人'}</h2><span>{currentPerson?.publicIdentity || '相关人物'}</span></div>
+          <div className="current-subject-stats"><b>信任 {currentTrust}</b><b>敌意 {currentHostility}</b><b>已出示 {presentedToCurrent}</b></div>
+        </header>
         <div className="chat-history" ref={historyRef} aria-live="polite">
           {timeline.length === 0 && <p className="bubble-empty">选择嫌疑人后开始提问，或直接出示证据戳破证词。</p>}
           {timeline.map((item) => <Bubble key={item.id} item={item} />)}
@@ -361,7 +443,28 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
             </div>}
         </div>
 
-        {error && <p className="entry-error" role="alert">{error}</p>}
+        {choices.length > 0 && <div className="dialogue-options" role="group" aria-label="可用话术">
+          <span className="dialogue-options-head">话术</span>
+          {choices.map((choice) => <button
+            key={choice.choiceId}
+            type="button"
+            className={`dialogue-choice ${choice.tier}`}
+            disabled={!canAct}
+            title={choice.question}
+            onClick={() => void act({ choiceId: choice.choiceId })}
+          >
+            <strong>{choice.label}</strong>
+            <small>{choice.question}</small>
+          </button>)}
+        </div>}
+
+        {error && <div className="entry-error model-error" role="alert">
+          <span>{error}</span>
+          {pendingFallback && <span className="model-error-actions">
+            <button type="button" onClick={retryModelAction} disabled={busy}>重试模型</button>
+            <button type="button" onClick={continueWithRule} disabled={busy}>使用规则回复</button>
+          </span>}
+        </div>}
 
         <div className="chat-input-wrap">
           <textarea
@@ -374,7 +477,7 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
             onKeyDown={onInputKeyDown}
           />
           <button className="send-btn" type="button" disabled={!canAct || !question.trim()} onClick={send}>
-            {busy ? '询问中…' : actionPoints <= 0 ? '行动点已尽' : '发送'}
+            {busy ? '询问中…' : actionPoints !== null && actionPoints <= 0 ? '行动点已尽' : '发送'}
           </button>
         </div>
       </section>
@@ -417,14 +520,9 @@ export default function Interrogation({ session, briefing, onBack, onModelConnec
       </aside>
     </div>
 
-    <nav className="mobile-tabs" aria-label="审讯室分区">
-      {([['suspect', '嫌疑人'], ['chat', '审讯'], ['board', '矛盾板']] as Array<[MobileTab, string]>).map(([key, label]) =>
-        <button key={key} type="button" className={`mobile-tab ${mobileTab === key ? 'active' : ''}`} onClick={() => setMobileTab(key)}>{label}</button>)}
-    </nav>
-
-    {showModel && <div className="room-modal" role="dialog" aria-modal="true" aria-label="模型配置">
+    {showModel && <div className="room-modal" role="dialog" aria-modal="true" aria-label="模型配置" onKeyDown={trapModelFocus}>
       <div className="room-modal-inner">
-        <button className="room-modal-close" type="button" onClick={() => setShowModel(false)}><CloseIcon size={14} />关闭</button>
+        <button ref={modelCloseRef} className="room-modal-close" type="button" onClick={() => setShowModel(false)}><CloseIcon size={14} />关闭</button>
         <ModelConfig onConnected={() => onModelConnected?.()} />
       </div>
     </div>}

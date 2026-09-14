@@ -62,10 +62,32 @@ export interface SessionEvent {
   createdAt: string
 }
 
+/** 话术层级：界面据此决定配色，服务端据此叠加态度修正。 */
+export type DialogueTier = 'open' | 'empathy' | 'press' | 'risky'
+export type Difficulty = 'hard' | 'normal' | 'easy' | 'practice'
+
+/*
+ * 一条可用话术。属于派生数据：不随 SessionState 返回，
+ * 而是由 GET /api/sessions/:sessionId/choices?suspect=名字 按「会话 + 嫌疑人」现算。
+ * question 由服务端权威生成，前端只负责展示并回传 choiceId。
+ */
+export interface DialogueChoice {
+  choiceId: string
+  label: string
+  question: string
+  tier: DialogueTier
+  /** 涉及的案件话题下标（从 1 开始）；没有话题时为 0。 */
+  topicIndex: number
+  /** 需要一并出示的证据；没有则为 null。 */
+  evidenceId: string | null
+}
+
 export interface SessionState {
   caseConfidence: number
   sessionId: string
   caseId: string
+  /** 最近一次行动时间，存档列表用它排序。 */
+  updatedAt: string
   currentSubject: string | null
   history: Array<{ role: 'user' | 'npc'; content: string }>
   trust: Record<string, number>
@@ -75,11 +97,14 @@ export interface SessionState {
   contradictions: Contradiction[]
   events: SessionEvent[]
   turn: number
-  actionPoints: number
-  actionPointsTotal: number
+  difficulty: Difficulty
+  actionPoints: number | null
+  actionPointsTotal: number | null
   actionLog: string[]
   /** 信任跌破阈值的嫌疑人，拒绝再回答任何问题。 */
   terminated: string[]
+  /** 剧情变量：话术使用次数（use:）与已问过的话题（asked:），与服务端同构。 */
+  variables: Record<string, number>
   gameState: 'active' | 'ended'
   /** 结局分类，供界面决定徽章与标题；审讯进行中为 null。 */
   endingKind: EndingKind | null

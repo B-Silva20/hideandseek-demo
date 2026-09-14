@@ -4,23 +4,24 @@
   --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
 
   /* 主色板：近黑底 + 米白前景 + 红色警示 + 金色行动 + 青蓝信息 */
-  --bg: #0d0d0d;
-  --panel: #181818;
-  --panel-2: #232323;
-  --line: #f7f4ed;
-  --text: #f7f4ed;
-  --dim: #c2beb4;
-  --red: #ef3340;
-  --gold: #ffd23f;
-  --cyan: #29d3ff;
-  --green: #7bf0a8;
+  --bg: #111111;
+  --panel: #1c1c1c;
+  --panel-2: #292929;
+  --line: #fff8eb;
+  --text: #fff8eb;
+  --dim: #d7cec1;
+  --red: #d9082f;
+  --gold: #ddb65b;
+  --cyan: #fff8eb;
+  --green: #8ce4ad;
+  --paper: #fff8eb;
+  --red-deep: #820019;
 
   /* 旧变量名保留为别名，避免残留引用失效 */
   --ink: var(--text);
   --muted: var(--dim);
   --border: var(--line);
   --accent: var(--red);
-  --paper: var(--panel);
   --court-blue: var(--line);
   --court-red: var(--red);
   --electric: var(--cyan);
@@ -48,8 +49,8 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: .07;
-  background: repeating-linear-gradient(135deg, transparent 0 16px, #fff 16px 20px, transparent 20px 46px);
+  opacity: .13;
+  background: radial-gradient(circle, #fff8eb 1.1px, transparent 1.7px) 0 0 / 8px 8px, repeating-linear-gradient(135deg, transparent 0 30px, rgba(255, 248, 235, .56) 30px 33px, transparent 33px 74px);
 }
 
 /* 顶部红光与右下金光，给页面一个固定光源 */
@@ -60,8 +61,8 @@ body::after {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% -10%, rgba(239, 51, 64, .18), transparent 58%),
-    radial-gradient(circle at 105% 105%, rgba(255, 210, 63, .12), transparent 55%);
+    radial-gradient(circle at 88% -10%, rgba(217, 8, 47, .32), transparent 43%),
+    linear-gradient(122deg, transparent 0 67%, rgba(217, 8, 47, .16) 67% 73%, transparent 73%);
 }
 
 #root { position: relative; z-index: 1; }
@@ -76,8 +77,9 @@ textarea:focus-visible,
 select:focus-visible,
 summary:focus-visible,
 a:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 3px;
+  outline: 3px solid var(--paper);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 7px var(--red);
 }
 
 ::selection { background: var(--gold); color: #111; }

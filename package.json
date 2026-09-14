@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --kill-others --names api,web \"npm run dev:server\" \"npm run dev:client\"",
+    "dev": "node scripts/dev.mjs",
     "dev:client": "vite",
     "dev:server": "tsx watch server/index.ts",
     "build": "tsc -b && vite build && tsc -p tsconfig.server.json",

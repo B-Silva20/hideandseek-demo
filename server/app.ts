@@ -1,25 +1,35 @@
 import express from 'express'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { ErrorRequestHandler } from 'express'
 import { createCasesRouter } from './routes/cases.js'
 import { createHealthRouter } from './routes/health.js'
-import { createPresetRouter } from './routes/preset.js'
 import { createModelConfigRouter } from './routes/modelConfig.js'
+import { createSavesRouter } from './routes/saves.js'
 import { createSessionsRouter } from './routes/sessions.js'
 
 export function createApp() {
   const app = express()
   app.disable('x-powered-by')
-  // 案件文本上限 200,000 个字符，UTF-8 中文约 3 字节/字符，为 JSON 转义留出余量。
-  app.use(express.json({ limit: '2mb' }))
+  // 支持书籍级 TXT；正文仅在提交时进入请求体，后续审讯不会重复传输。
+  app.use(express.json({ limit: '12mb' }))
   app.use('/api', createHealthRouter())
-  app.use('/api', createPresetRouter())
   app.use('/api', createCasesRouter())
   app.use('/api', createModelConfigRouter())
+  app.use('/api', createSavesRouter())
   app.use('/api', createSessionsRouter())
 
-  app.use((_request, response) => {
-    response.status(404).json({ error: '接口不存在。' })
-  })
+  // 发布版将 dist 与 dist-server 并列放置；开发模式没有 dist 时不注册静态托管。
+  const distDirectory = fileURLToPath(new URL('../dist/', import.meta.url))
+  if (existsSync(join(distDirectory, 'index.html'))) {
+    app.use(express.static(distDirectory, { index: false }))
+    app.get('*splat', (_request, response) => response.sendFile(join(distDirectory, 'index.html')))
+  } else {
+    app.use((_request, response) => {
+      response.status(404).json({ error: '接口不存在。' })
+    })
+  }
 
   const handleError: ErrorRequestHandler = (error: unknown, _request, response, _next) => {
     const status = error && typeof error === 'object' && 'status' in error

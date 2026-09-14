@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import ConnectionStatus from './ConnectionStatus'
 import './ModelConfig.css'
 
 type Provider = 'openai' | 'deepseek' | 'doubao' | 'custom'
@@ -129,14 +128,13 @@ export default function ModelConfig({ onConnected, onCollapse }: { onConnected?:
   const actionsDisabled = busy || testing || !baseUrl || keyMissing
 
   return <section className="model-config" aria-labelledby="model-config-title">
-    <div className="card-heading"><div><p className="section-kicker">连接模型</p><h2 id="model-config-title">API 可视化配置</h2></div><div className="config-heading-actions"><span className="config-lock">仅后端保存</span>{onCollapse && <button className="collapse-button" type="button" onClick={onCollapse}>收起</button>}</div></div>
-    <p className="config-copy">选择服务商并填写 API Key。密钥只发送到本地后端，不会写入网页、响应或 Git。</p>
+    <div className="card-heading"><h2 id="model-config-title">模型配置</h2>{onCollapse && <button className="collapse-button" type="button" onClick={onCollapse}>收起</button>}</div>
     <div className="provider-grid" role="group" aria-label="模型服务商">
       {PROVIDERS.map((item) => <button key={item} type="button" className={provider === item ? 'provider active' : 'provider'} onClick={() => choose(item)}>{presets[item].label}</button>)}
     </div>
     <label htmlFor="model-base-url">Base URL</label><input id="model-base-url" value={baseUrl} onChange={(event) => updateBaseUrl(event.target.value)} placeholder="https://api.example.com/v1" />
     <label htmlFor="model-api-key">API Key</label><input id="model-api-key" type="password" value={apiKey} onChange={(event) => { setApiKey(event.target.value); setConnection(null) }} placeholder={savedKey ? '后端已保存密钥，留空即沿用' : '粘贴密钥，仅本次提交使用'} autoComplete="off" />
-    {savedKey && <p className="config-notice">API Key 已保存在后端进程中，刷新或重新打开面板都不需要重填；浏览器不会保存密钥。</p>}
+    <p className="config-notice">{savedKey ? 'API Key 已保存在本地后端进程中，浏览器不会保存密钥。' : 'API Key 仅保存在本地后端进程中。'}</p>
     <label htmlFor="model-name">模型名称（可选）</label>
     <select id="model-name" value={availableModels.includes(model) ? model : model ? '__custom__' : ''} onChange={(event) => setModel(event.target.value === '__custom__' ? '' : event.target.value)}>
       <option value="">连接成功后选择模型（可暂不填写）</option>{availableModels.map((item) => <option key={item} value={item}>{item}</option>)}<option value="__custom__">自定义输入…</option>
@@ -144,6 +142,5 @@ export default function ModelConfig({ onConnected, onCollapse }: { onConnected?:
     {(model && !availableModels.includes(model) || availableModels.length === 0) && <input aria-label="自定义模型名称" value={model} onChange={(event) => setModel(event.target.value)} placeholder="可选，例如 gpt-4o-mini 或 Endpoint ID" />}
     {(notice || connection) && <p className={`connection-result ${connection ?? 'info'}`} role={connection === 'error' ? 'alert' : 'status'}>{notice || (connection === 'success' ? '连接成功' : '连接失败')}</p>}
     <div className="config-actions"><button className="refresh-button" type="button" disabled={actionsDisabled} onClick={() => void save()}>{busy ? '正在保存…' : '保存配置'}</button><button className="test-button" type="button" disabled={actionsDisabled} onClick={() => void testConnection()}>{testing ? '正在测试…' : '测试连接'}</button></div>
-    <ConnectionStatus />
   </section>
 }

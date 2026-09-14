@@ -25,7 +25,7 @@ export interface CaseBriefing { playerRole: string; title: string; summary: stri
  */
 
 /** 案件文本的提交方式。上传 .txt 不经过 multipart，由前端读取后按纯文本提交。 */
-export type CaseSourceType = 'preset' | 'paste' | 'file'
+export type CaseSourceType = 'paste' | 'file'
 
 /** 案件状态。parsing 表示文本已被接收，模型解析尚未完成。 */
 export type CaseStatus = 'parsing' | 'ready' | 'failed'
@@ -79,4 +79,29 @@ export interface CaseErrorResponse {
  * 上传 .txt 前请在前端先做同样的长度检查，避免把超大请求发到后端。
  */
 export const CASE_TEXT_MIN_LENGTH = 200
-export const CASE_TEXT_MAX_LENGTH = 200_000
+export const CASE_TEXT_MAX_LENGTH = 1_000_000
+
+/*
+ * 存档槽契约（前端副本）。
+ *
+ *   GET    /api/saves              -> 200 { saves: SaveSlot[] }
+ *   DELETE /api/saves/:sessionId   -> 204 | 404
+ *
+ * 一局审讯就是一份存档；服务端在每次行动结算后自动写盘，
+ * 这里只负责把进度摘要展示出来，不含案件原文与案件真相。
+ */
+export interface SaveSlot {
+  sessionId: string
+  caseId: string
+  caseTitle: string
+  updatedAt: string
+  turn: number
+  difficulty: 'hard' | 'normal' | 'easy' | 'practice'
+  actionPoints: number | null
+  actionPointsTotal: number | null
+  caseConfidence: number
+  gameState: 'active' | 'ended'
+  endingKind: string | null
+  suspects: number
+  contradictions: number
+}

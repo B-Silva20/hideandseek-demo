@@ -8,9 +8,33 @@
 .briefing li + li { margin-top: 8px; }
 .briefing li strong { display: block; color: var(--text); font-size: 15px; }
 .briefing li span { display: block; color: var(--dim); font-size: 13px; }
-.briefing .refresh-button { max-width: 420px; margin-top: 28px; }
+.briefing-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; }
+.briefing .refresh-button { max-width: 420px; margin-top: 0; }
+.briefing-actions .test-button { min-height: 56px; padding-inline: 24px; }
+.difficulty-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.difficulty-option { min-height: 82px; padding: 14px; border: 3px solid var(--line); background: #101010; color: var(--text); text-align: left; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease; }
+.difficulty-option strong, .difficulty-option span { display: block; }
+.difficulty-option strong { font-size: 16px; }
+.difficulty-option span { margin-top: 6px; color: var(--dim); font: 700 12px var(--font-mono); }
+.difficulty-option:hover, .difficulty-option.active { transform: translate(-3px, -3px); background: var(--gold); color: #111; box-shadow: 5px 5px 0 var(--red); border-color: #111; }
+.difficulty-option:hover span, .difficulty-option.active span { color: #3a3222; }
+.difficulty-card > p { margin-top: 14px; }
 
 @media (max-width: 420px) {
   .briefing { padding: 24px 16px 48px; }
   .briefing section { padding: 18px; }
+  .difficulty-options { grid-template-columns: 1fr; }
+  .briefing-actions > button { width: 100%; max-width: none; }
 }
+
+/* P5R 无素材模式：阅读信息用暖白纸片，选择操作回到黑红舞台。 */
+.briefing { position: relative; max-width: 1020px; padding-top: 58px; }
+.briefing::before { content: ''; position: absolute; z-index: -1; width: min(54vw, 530px); height: 250px; top: 4px; right: -74px; background: var(--red); clip-path: polygon(28% 0, 100% 0, 74% 100%, 0 78%); opacity: .92; }
+.briefing h1 { position: relative; max-width: 10em; font-size: clamp(46px, 9vw, 94px); font-style: italic; line-height: .86; letter-spacing: -.06em; text-shadow: 9px 9px 0 var(--red); transform: skewX(-5deg); }
+.briefing section { position: relative; border: 0; background: var(--paper); color: #111; clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%); box-shadow: 10px 11px 0 #111; }
+.briefing section:nth-child(even) { background: #111; color: var(--paper); box-shadow: 10px 11px 0 var(--red); }
+.briefing h2 { background: var(--red); color: #fff; font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; }
+.briefing section:nth-child(even) h2 { background: var(--paper); color: #111; }
+.briefing p, .briefing li { color: #25211e; }.briefing section:nth-child(even) p, .briefing section:nth-child(even) li { color: var(--paper); }
+.briefing li strong { color: #111; }.briefing section:nth-child(even) li strong { color: var(--paper); }.briefing li span { color: #5c5149; }.briefing section:nth-child(even) li span { color: #d7cec1; }
+.difficulty-card { background: #111 !important; }.difficulty-option { border: 0; background: #2a2a2a; clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); box-shadow: inset 0 0 0 2px var(--paper); }.difficulty-option:hover, .difficulty-option.active { background: var(--red); color: #fff; box-shadow: inset 0 0 0 2px #fff, 6px 7px 0 var(--paper); transform: translate(-4px, -4px); }.difficulty-option:hover span, .difficulty-option.active span { color: #fff; }
